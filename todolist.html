@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>to-do-list</title>
+    <link rel="stylesheet" href="todolistStyle.css">
+    <script src="todolistScript.js"></script>
+</head>
+<body>
+    <h1><span id="todayDate"></span>의 할일 목록</h1>
+    <ul id="todoList" class="todo-list"></ul>
+    
+    <!-- 할일 입력 섹션 -->
+    <div id="todoInputSection" class="todo-input-section">
+        <button class="close-button" onclick="hideTodoInput()">×</button>
+        <h3 style="margin-bottom: 20px; color: #333;">새로운 할일 추가</h3>
+        <div class="input-group">
+            <input type="text" id="todoInput" placeholder="할일을 입력하세요..." class="todo-input">
+            <button class="add-button" onclick="addTodo()">추가</button>
+        </div>
+        <div class="date-group">
+            <label for="todoDueDate" class="date-label">마감일 : </label>
+            <input type="date" id="todoDueDate" class="date-input">
+        </div>
+    </div>
+    
+    <!-- 플로팅 버튼 -->
+    <button class="floating-button" onclick="showTodoInput()">
+        <span>할일</span>
+        <span>입력</span>
+    </button>
+    
+    
+</body>
+<script defer="defer" src="todolistScript.js"></script>
+</html>

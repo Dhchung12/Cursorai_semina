@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>실시간 코인 현환</title>
+  <style>
+    /* h1 태그를 예쁘게 꾸미는 CSS 코드 */
+    h1 {
+      color: #4F8EF7; /* 파란색 계열로 글자색 지정 */
+      text-align: center; /* 가운데 정렬 */
+      margin-top: 60px; /* 위쪽에 여백 추가 */
+      font-size: 3rem; /* 글자 크기 크게 */
+      font-family: 'Segoe UI', '맑은 고딕', Arial, sans-serif; /* 부드러운 글꼴 지정 */
+      letter-spacing: 0.1em; /* 글자 간격 넓게 */
+      text-shadow: 2px 2px 8px #BFD7ED; /* 그림자 효과로 입체감 */
+      background: linear-gradient(90deg, #e0eafc, #cfdef3); /* 그라데이션 배경 */
+      border-radius: 20px; /* 모서리 둥글게 */
+      padding: 30px 0; /* 위아래 여백 */
+      box-shadow: 0 4px 20px rgba(79, 142, 247, 0.1); /* 박스 그림자 */
+      width: 70%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    body {
+      background: #f7fbff; /* 전체 배경색을 밝게 지정 */
+    }
+
+    /* 코인 종목 리스트(ul)를 가운데 정렬하고, 여백을 줍니다 */
+    ul#coin-list {
+      list-style: none; /* 기본 점 제거 */
+      padding: 0;
+      margin: 40px auto 0 auto; /* 위쪽에 여백, 좌우 가운데 정렬 */
+      width: 420px; /* 리스트의 최대 너비를 더 넓게 지정 */
+      display: flex;
+      flex-direction: column;
+      gap: 18px; /* li 태그 사이 간격 */
+    }
+
+    /* 각 코인 종목(li)을 카드처럼 예쁘게 꾸밉니다 */
+    ul#coin-list li {
+      background: linear-gradient(90deg, #e0eafc 0%, #cfdef3 100%); /* 그라데이션 배경 */
+      border: 1.5px solid #b3c6e0; /* 연한 파란색 테두리 */
+      border-radius: 14px; /* 모서리 둥글게 */
+      box-shadow: 0 2px 8px rgba(79, 142, 247, 0.08); /* 그림자 효과 */
+      padding: 24px 0; /* 위아래 여백을 더 넉넉하게 */
+      text-align: center; /* 글자 가운데 정렬 */
+      font-size: 1.3rem; /* 글자 크기 */
+      font-weight: 600; /* 글자 두껍게 */
+      color: #3a4a6b; /* 글자색 */
+      letter-spacing: 0.05em; /* 글자 간격 */
+      transition: transform 0.15s, box-shadow 0.15s; /* 마우스 오버 효과 부드럽게 */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+    }
+
+    /* 코인 종목 이름 스타일 */
+    .coin-market {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 2px;
+    }
+    /* 거래 가격 강조 */
+    .coin-price {
+      font-size: 1.4rem;
+      color: #e74c3c;
+      font-weight: bold;
+    }
+    /* 정보 라벨 스타일 */
+    .coin-label {
+      font-size: 0.95rem;
+      color: #6b7a99;
+      margin-right: 4px;
+    }
+    /* 정보 값 스타일 */
+    .coin-value {
+      font-size: 1rem;
+      color: #3a4a6b;
+    }
+    /* 변화율, 변동금액 등 작은 정보 묶음 */
+    .coin-info-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+      font-size: 0.98rem;
+    }
+    /* 상승/하락 화살표 스타일 */
+    .arrow-up {
+      color: #e74c3c; /* 빨간색 */
+      font-size: 1.2rem;
+      margin-right: 2px;
+    }
+    .arrow-down {
+      color: #3498db; /* 파란색 */
+      font-size: 1.2rem;
+      margin-right: 2px;
+    }
+
+    /* 마우스를 올렸을 때(li:hover) 살짝 커지고 그림자 강조 */
+    ul#coin-list li:hover {
+      transform: scale(1.04);
+      box-shadow: 0 4px 16px rgba(79, 142, 247, 0.18);
+      cursor: pointer;
+    }
+
+    /* 코인 가격과 화살표를 가로로 정렬하는 스타일 */
+    /* coin-price-row: 가격+화살표를 한 줄에 */
+    .coin-price-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 2px;
+    }
+
+    /* 변화율(%) 색상도 화살표와 동일하게 적용 */
+    .coin-rate.rate-up {
+      color: #e74c3c; /* 빨간색 */
+      font-size: 1.08rem;
+      margin-left: 2px;
+    }
+    .coin-rate.rate-down {
+      color: #3498db; /* 파란색 */
+      font-size: 1.08rem;
+      margin-left: 2px;
+    }
+  </style>
+  <!-- chart.js CDN 추가 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <!-- h1 태그로 실시간 코인 현환 문구 출력 -->
+  <h1>실시간 코인 현환</h1>
+
+  <!-- 코인 종목 이름을 출력할 ul 태그 -->
+  <ul id="coin-list">
+    <!-- JS로 li 태그가 추가됩니다. -->
+  </ul>
+
+  <!-- 코인 가격 변동 그래프를 그릴 영역 (코인별로 여러 개의 차트가 들어감) -->
+  <div id="chart-area"></div>
+
+  <script>
+    // 코인별 가격 변동을 저장할 배열입니다.
+    // 예시: { KRW-BTC: [{time: '16:40:46', price: 145549000}, ...], KRW-ETH: [...] }
+    var coinHistory = {};
+    // 코인별 차트 객체를 저장할 변수
+    var coinCharts = {};
+    // 차트에 표시할 최대 데이터 개수(예: 20개만 유지)
+    var MAX_POINTS = 20;
+
+    // 코인 시세 데이터를 가져와서 화면에 출력하는 함수입니다.
+    function fetchAndDisplayCoins() {
+      fetch('https://api.upbit.com/v1/ticker?markets=KRW-BTC,KRW-ETH')
+        .then(function(response) {
+          // 응답(response)을 JSON 데이터로 변환합니다.
+          return response.json();
+        })
+        .then(function(data) {
+          // 변환된 JSON 데이터를 콘솔에 출력합니다.
+          console.log('코인 시세 데이터:', data);
+
+          var coinList = document.getElementById('coin-list'); // ul 태그 선택
+          coinList.innerHTML = ''; // 기존 리스트를 모두 지웁니다.
+
+          // 그래프 영역도 비웁니다.
+          var chartArea = document.getElementById('chart-area');
+          chartArea.innerHTML = '';
+
+          // 현재 시각을 구합니다 (HH:MM:SS)
+          var now = new Date();
+          var timeStr = now.toTimeString().slice(0, 8);
+
+          data.forEach(function(coin, idx) {
+            var marketName = coin.market;
+            var tradeDate = coin.trade_date; // 거래 날짜
+            var tradeTime = coin.trade_time; // 거래 시간
+            var tradePrice = coin.trade_price; // 현재 거래된 가격
+            var change = coin.change; // 상승/하락 여부 ("RISE"/"FALL")
+            var changePrice = coin.change_price; // 변동 금액
+            var changeRate = coin.change_rate; // 변화율
+
+            // 날짜와 시간을 합쳐서 한 줄로 만듭니다.
+            var dateTime = tradeDate + ' ' + tradeTime;
+
+            // 상승/하락 여부에 따라 화살표와 색상, 변화율 클래스 결정
+            var arrow = '';
+            var rateClass = '';
+            if (change === 'RISE') {
+              arrow = '<span class="arrow-up">▲</span>';
+              rateClass = 'rate-up';
+            } else if (change === 'FALL') {
+              arrow = '<span class="arrow-down">▼</span>';
+              rateClass = 'rate-down';
+            } else {
+              arrow = '';
+              rateClass = '';
+            }
+
+            // li 태그를 생성하고, 코인 정보를 예쁘게 넣어줍니다.
+            var li = document.createElement('li');
+            li.innerHTML = `
+              <div class="coin-market">${marketName}</div>
+              <div class="coin-price-row">
+                <span class="coin-price">${tradePrice.toLocaleString()}원</span>
+                ${arrow}
+                <span class="coin-rate ${rateClass}">
+                  (${(changeRate * 100).toFixed(2)}%, ${changePrice.toLocaleString()}원)
+                </span>
+              </div>
+              <div class="coin-info-row">
+                <span class="coin-label">거래일시</span>
+                <span class="coin-value">${dateTime}</span>
+              </div>
+            `;
+            coinList.appendChild(li);
+
+            // 코인별 가격 변동 배열에 데이터 저장
+            if (!coinHistory[marketName]) {
+              coinHistory[marketName] = [];
+            }
+            coinHistory[marketName].push({ time: timeStr, price: tradePrice });
+            // 최대 MAX_POINTS개만 유지
+            if (coinHistory[marketName].length > MAX_POINTS) {
+              coinHistory[marketName].shift();
+            }
+
+            // 코인별 차트용 canvas 동적 생성
+            var chartDiv = document.createElement('div');
+            chartDiv.style.width = '600px';
+            chartDiv.style.margin = '40px auto 0 auto';
+            chartDiv.innerHTML = `
+              <h2 style="text-align:center; font-size:1.2rem; margin-bottom:8px;">${marketName} 실시간 가격 변동</h2>
+              <canvas id="chart-${marketName}"></canvas>
+            `;
+            chartArea.appendChild(chartDiv);
+          });
+
+          // 코인별 차트 그리기
+          drawCoinCharts();
+        })
+        .catch(function(error) {
+          // 에러가 발생하면 콘솔에 에러 내용을 출력합니다.
+          console.error('데이터를 가져오는 중 에러 발생:', error);
+        });
+    }
+
+    // 코인별로 각각의 차트를 그리는 함수
+    function drawCoinCharts() {
+      Object.keys(coinHistory).forEach(function(market, idx) {
+        var ctx = document.getElementById('chart-' + market).getContext('2d');
+        var labels = coinHistory[market].map(item => item.time);
+        var prices = coinHistory[market].map(item => item.price);
+        // y축 범위를 더 좁게(0.1% 여유) 설정
+        var min = Math.min(...prices);
+        var max = Math.max(...prices);
+        var margin = (max - min) * 0.001;
+        if (margin === 0) margin = max * 0.001;
+        var minY = min - margin;
+        var maxY = max + margin;
+        // 기존 차트가 있으면 파괴
+        if (coinCharts[market]) coinCharts[market].destroy();
+        // 새 차트 생성
+        coinCharts[market] = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: market,
+              data: prices,
+              borderColor: idx === 0 ? '#4F8EF7' : '#e74c3c',
+              backgroundColor: (idx === 0 ? '#4F8EF7' : '#e74c3c') + '22',
+              fill: false,
+              tension: 0.2,
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                display: true,
+                position: 'top',
+              },
+              title: {
+                display: false
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: false,
+                min: minY,
+                max: maxY,
+                ticks: {
+                  callback: function(value) {
+                    return value.toLocaleString() + '원';
+                  }
+                }
+              }
+            }
+          }
+        });
+      });
+    }
+
+    // 페이지가 처음 열릴 때 한 번 실행합니다.
+    fetchAndDisplayCoins();
+    // 5초(5000ms)마다 자동으로 코인 시세를 갱신합니다.
+    setInterval(fetchAndDisplayCoins, 5000);
+  </script>
+</body>
+</html> 

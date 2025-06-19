@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>가위바위보 게임</title>
+    <style>
+        /* 제목 스타일 설정 */
+        .game-title {
+            /* 화면 중앙 정렬을 위한 설정 */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            
+            /* 글자 크기와 스타일 설정 */
+            font-size: 48px;
+            font-weight: bold;
+            color: #333;
+            
+            /* 글자 그림자 효과 */
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 버튼 컨테이너 스타일 */
+        .button-container {
+            position: absolute;
+            top: 65%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            gap: 20px;
+        }
+
+        /* 버튼 스타일 */
+        .game-button {
+            width: 100px;
+            height: 100px;
+            font-size: 50px;
+            border: none;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 버튼 호버 효과 */
+        .game-button:hover {
+            transform: scale(1.1);
+            background-color: #e0e0e0;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 버튼 클릭 효과 */
+        .game-button:active {
+            transform: scale(0.95);
+        }
+
+        /* 결과 표시 영역 스타일 */
+        .result-container {
+            position: absolute;
+            top: 80%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            min-width: 300px;
+        }
+
+        .result-text {
+            font-size: 24px;
+            color: #333;
+            margin: 0;
+            font-weight: bold;
+        }
+
+        .result-detail {
+            font-size: 18px;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        /* 승리/패배/무승부 색상 */
+        .win {
+            color: #28a745;
+        }
+        .lose {
+            color: #dc3545;
+        }
+        .draw {
+            color: #ffc107;
+        }
+
+        /* 게임 오버 메시지 스타일 */
+        .game-over {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 10px;
+            font-size: 32px;
+            font-weight: bold;
+            display: none;
+        }
+
+        /* 승률 표시 스타일 */
+        .win-rate {
+            color: #007bff;
+            font-weight: bold;
+        }
+
+        /* 모달 스타일 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .modal-button {
+            padding: 10px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .restart-button {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .restart-button:hover {
+            background-color: #218838;
+        }
+
+        .exit-button {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .exit-button:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="game-title">가위, 바위, 보 게임</h1>
+    <div class="button-container">
+        <button class="game-button" onclick="handleChoice('가위')">✌️</button>
+        <button class="game-button" onclick="handleChoice('바위')">✊</button>
+        <button class="game-button" onclick="handleChoice('보')">✋</button>
+    </div>
+    <div class="result-container">
+        <p class="result-text">게임 결과</p>
+        <p class="result-detail" id="gameDetail">당신: ✌️ vs 컴퓨터: ✊</p>
+        <p class="result-text" id="gameResult">결과가 여기에 표시됩니다</p>
+        <p class="result-detail" id="gameRecord">전적: 0전 0승 0무 0패</p>
+        <p class="result-detail win-rate" id="winRate">승률: 0%</p>
+    </div>
+    <div class="game-over" id="gameOver">게임 오버</div>
+
+    <!-- 재시작 모달 -->
+    <div class="modal" id="restartModal">
+        <div class="modal-content">
+            <h2 class="modal-title">게임을 다시 시작할까요?</h2>
+            <div class="modal-buttons">
+                <button class="modal-button restart-button" onclick="restartGame()">예</button>
+                <button class="modal-button exit-button" onclick="exitGame()">아니요</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 게임 상태 변수
+        let gameCount = 0;
+        let winCount = 0;
+        let drawCount = 0;
+        let loseCount = 0;
+        const MAX_GAMES = 5; // const : 상수
+
+        // 승률 계산 함수
+        function calculateWinRate() {
+            if (gameCount === 0) return 0;
+            return (winCount / gameCount * 100).toFixed(1);
+        }
+
+        // 컴퓨터의 선택을 랜덤으로 결정하는 함수
+        function getComputerChoice() {
+            // 가위, 바위, 보 중 랜덤으로 선택
+            const choices = ['가위', '바위', '보'];
+            const randomIndex = Math.floor(Math.random() * 3);
+            return choices[randomIndex];
+        }
+
+        // 선택을 이모지로 변환하는 함수
+        function choiceToEmoji(choice) {
+            const emojiMap = {
+                '가위': '✌️',
+                '바위': '✊',
+                '보': '✋'
+            };
+            return emojiMap[choice];
+        }
+
+        // 승패를 판정하는 함수
+        function determineWinner(userChoice, computerChoice) {
+            if (userChoice === computerChoice) {
+                return '무승부';
+            }
+            
+            if (
+                (userChoice === '가위' && computerChoice === '보') ||
+                (userChoice === '바위' && computerChoice === '가위') ||
+                (userChoice === '보' && computerChoice === '바위')
+            ) {
+                return '승리';
+            }
+            
+            return '패배';
+        }
+
+        // 게임 초기화 함수
+        function resetGame() {
+            gameCount = 0;
+            winCount = 0;
+            drawCount = 0;
+            loseCount = 0;
+            
+            // 결과 표시 초기화
+            document.getElementById('gameDetail').textContent = '당신: ✌️ vs 컴퓨터: ✊';
+            document.getElementById('gameResult').textContent = '결과가 여기에 표시됩니다';
+            document.getElementById('gameResult').className = 'result-text';
+            document.getElementById('gameRecord').textContent = '전적: 0전 0승 0무 0패';
+            document.getElementById('winRate').textContent = '승률: 0%';
+            
+            // 버튼 활성화
+            const buttons = document.querySelectorAll('.game-button');
+            buttons.forEach(button => {
+                button.disabled = false;
+                button.style.opacity = '1';
+                button.style.cursor = 'pointer';
+            });
+        }
+
+        // 게임 재시작 함수
+        function restartGame() {
+            // 모달 닫기
+            document.getElementById('restartModal').style.display = 'none';
+            // 게임 초기화
+            resetGame();
+        }
+
+        // 게임 종료 함수
+        function exitGame() {
+            // 브라우저 종료 시도
+            window.close();
+            
+            // window.close()가 작동하지 않는 경우 (대부분의 브라우저에서 보안상의 이유로 차단됨)
+            alert('브라우저를 직접 종료해주세요.');
+        }
+
+        // 게임 종료 처리
+        function endGame() {
+            // 버튼 비활성화
+            const buttons = document.querySelectorAll('.game-button');
+            buttons.forEach(button => {
+                button.disabled = true;
+                button.style.opacity = '0.5';
+                button.style.cursor = 'not-allowed';
+            });
+
+            // 재시작 모달 표시
+            document.getElementById('restartModal').style.display = 'block';
+        }
+
+        // 사용자의 선택을 처리하는 함수
+        function handleChoice(choice) {
+            // 게임이 이미 종료되었다면 리턴
+            if (gameCount >= MAX_GAMES) return;
+
+            // 컴퓨터의 선택 가져오기
+            const computerChoice = getComputerChoice();
+            
+            // 결과 판정
+            const result = determineWinner(choice, computerChoice);
+            
+            // 전적 업데이트
+            gameCount++;
+            if (result === '승리') winCount++;
+            else if (result === '무승부') drawCount++;
+            else loseCount++;
+            
+            // 결과 표시 업데이트
+            document.getElementById('gameDetail').textContent = 
+                `당신: ${choiceToEmoji(choice)} vs 컴퓨터: ${choiceToEmoji(computerChoice)}`;
+            
+            const resultElement = document.getElementById('gameResult');
+            resultElement.textContent = result;
+            
+            // 결과에 따른 색상 변경
+            resultElement.className = 'result-text';
+            if (result === '승리') {
+                resultElement.classList.add('win');
+            } else if (result === '패배') {
+                resultElement.classList.add('lose');
+            } else {
+                resultElement.classList.add('draw');
+            }
+
+            // 전적 표시 업데이트
+            document.getElementById('gameRecord').textContent = 
+                `전적: ${gameCount}전 ${winCount}승 ${drawCount}무 ${loseCount}패`;
+
+            // 승률 표시 업데이트
+            const winRate = calculateWinRate();
+            document.getElementById('winRate').textContent = `승률: ${winRate}%`;
+            
+            // 콘솔에 결과 출력
+            console.log('=== 가위바위보 게임 결과 ===');
+            console.log(`당신의 선택: ${choice}`);
+            console.log(`컴퓨터의 선택: ${computerChoice}`);
+            console.log(`결과: ${result}`);
+            console.log(`전적: ${gameCount}전 ${winCount}승 ${drawCount}무 ${loseCount}패`);
+            console.log(`승률: ${winRate}%`);
+            console.log('========================');
+
+            // 게임 종료 체크
+            if (gameCount >= MAX_GAMES) {
+                endGame();
+            }
+        }
+    </script>
+</body>
+</html>

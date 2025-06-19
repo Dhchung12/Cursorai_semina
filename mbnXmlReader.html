@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MBN 뉴스 기사</title>
+    <style>
+        /* 제목 스타일링 */
+        .title {
+            text-align: center;          /* 가운데 정렬 */
+            color: #333;                 /* 진한 회색 텍스트 */
+            font-size: 2.5rem;           /* 큰 글자 크기 */
+            margin: 2rem 0;              /* 위아래 여백 */
+            font-weight: bold;           /* 굵은 글씨 */
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);  /* 부드러운 그림자 효과 */
+        }
+
+        /* 날짜 표시 스타일링 */
+        .date {
+            color: #666;                 /* 연한 회색 텍스트 */
+            font-size: 1.2rem;           /* 적절한 글자 크기 */
+            font-style: italic;          /* 이탤릭체 */
+            text-align: right;           /* 오른쪽 정렬 */
+            padding-right: 2rem;         /* 오른쪽 여백 */
+            margin-top: -1rem;           /* 위로 살짝 올림 */
+        }
+
+        /* 전체 컨테이너 */
+        .container {
+            width: 100%;                 /* 전체 너비 */
+            max-width: 1200px;           /* 최대 너비 설정 */
+            margin: 0 auto;              /* 중앙 정렬 */
+            padding: 0 1rem;             /* 좌우 여백 */
+        }
+
+        /* 뉴스 리스트 스타일링 */
+        .news-list {
+            margin-top: 2rem;
+        }
+
+        .news-link-block {
+            display: block;               /* 블록 요소로 만들어 전체 클릭 가능 */
+            text-decoration: none;        /* 밑줄 제거 */
+        }
+        .news-link-block:visited {
+            color: inherit;               /* 방문 후에도 색상 유지 */
+        }
+
+        .news-item {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .news-link-block:hover .news-item {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .news-title {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        /* 뉴스 요약(Description) 스타일 */
+        .news-desc {
+            font-size: 1rem;              /* 제목보다 작은 글씨 */
+            color: #555;                  /* 연한 회색 */
+            margin-bottom: 0.5rem;        /* 아래 여백 */
+        }
+
+        /* pubDate(발행일) 스타일 */
+        .news-pubdate {
+            font-size: 0.85rem;           /* 더 작은 글씨 */
+            color: #aaa;                  /* 더 옅은 회색 */
+            margin-bottom: 0.5rem;        /* 아래 여백 */
+        }
+
+        .news-date {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        /* 로딩 스피너 */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">오늘의 MBN 연예 뉴스</h1>
+        <div class="date" id="currentDate"></div>
+        
+        <!-- 뉴스 리스트 컨테이너 -->
+        <div class="news-list" id="newsList">
+            <div class="loading">뉴스를 불러오는 중...</div>
+        </div>
+    </div>
+
+    <script>
+        // 현재 날짜를 가져오는 함수
+        function getCurrentDate() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year}년 ${month}월 ${day}일`;
+        }
+
+        // RSS 피드에서 뉴스를 가져오는 함수
+        async function fetchNews() {
+            try {
+                const response = await fetch('https://mbn.co.kr/rss/enter/');
+                const text = await response.text();
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(text, "text/xml");
+                
+                // 뉴스 아이템 가져오기
+                const items = xmlDoc.getElementsByTagName("item");
+                const newsList = document.getElementById('newsList');
+                newsList.innerHTML = ''; // 로딩 메시지 제거
+
+                // 각 뉴스 아이템 처리
+                for (let item of items) {
+                    const title = item.getElementsByTagName("title")[0].textContent;
+                    const description = item.getElementsByTagName("description")[0]?.textContent || '';
+                    const link = item.getElementsByTagName("link")[0]?.textContent || '#';
+                    const pubDate = new Date(item.getElementsByTagName("pubDate")[0].textContent);
+                    
+                    // 날짜 포맷팅
+                    const formattedDate = `${pubDate.getFullYear()}년 ${String(pubDate.getMonth() + 1).padStart(2, '0')}월 ${String(pubDate.getDate()).padStart(2, '0')}일 ${String(pubDate.getHours()).padStart(2, '0')}:${String(pubDate.getMinutes()).padStart(2, '0')}`;
+
+                    // 뉴스 아이템 HTML 생성 (a 태그로 전체 감싸기)
+                    const newsItem = document.createElement('a');
+                    newsItem.className = 'news-link-block';
+                    newsItem.href = link;
+                    newsItem.target = '_blank';
+                    newsItem.innerHTML = `
+                        <div class="news-item">
+                            <div class="news-title">${title}</div>
+                            <div class="news-desc">${description}</div>
+                            <div class="news-pubdate">${formattedDate}</div>
+                        </div>
+                    `;
+                    
+                    newsList.appendChild(newsItem);
+                }
+            } catch (error) {
+                console.error('뉴스를 불러오는 중 오류가 발생했습니다:', error);
+                document.getElementById('newsList').innerHTML = '<div class="loading">뉴스를 불러오는 중 오류가 발생했습니다.</div>';
+            }
+        }
+
+        // 페이지 로드 시 실행
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('currentDate').textContent = getCurrentDate();
+            fetchNews();
+        });
+    </script>
+</body>
+</html>
