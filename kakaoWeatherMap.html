@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>카카오지도 + 날씨</title>
+    <link rel="stylesheet" href="weather.css">
+</head>
+<body>
+    <div class="app-container">
+        <h1>오늘의 날씨 지도</h1>
+        <!-- 유저가 도시를 선택할 수 있는 select 박스 추가 -->
+        <div style="width:100%; display:flex; justify-content:center; margin-bottom:1rem;">
+            <select id="city-select" style="font-size:1.1rem; padding:0.5rem 1rem; border-radius:8px; border:1px solid #bbb;">
+                <!-- option의 value는 영어, 화면에는 한글로 표시 -->
+                <option value="Seoul">서울</option>
+                <option value="Incheon">인천</option>
+                <option value="Gwangju">광주</option>
+                <option value="Daegu">대구</option>
+                <option value="Busan">부산</option>
+                <option value="Daejeon">대전</option>
+                <option value="Jeju">제주</option>
+            </select>
+        </div>
+        <main class="content-container">
+            <div id="map" class="info-box">
+                <!-- 이 곳에 카카오 지도가 표시됩니다 -->
+                <!-- <p>지도</p> -->
+            </div>
+            <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=e7b1545effea161c9286cb60c00e781d"></script>
+            <script>
+                kakao.maps.load(function() {
+                    var container = document.getElementById('map');
+                    var options = {
+                        center: new kakao.maps.LatLng(33.450701, 126.570667),
+                        level: 3
+                    };
+                    var map = new kakao.maps.Map(container, options);
+                });
+            </script>
+            
+            <div id="weather-container" class="info-box">
+                <!-- 이 곳에 날씨 정보가 표시됩니다 -->
+                <p>날씨정보</p>
+            </div>
+        </main>
+    </div>
+
+    <script src="weather.js" defer></script>
+
+</body>
+</html>
+
